@@ -1,0 +1,37 @@
+name: Update binary baseline
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: binary-baseline
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@1.99.1
+      - uses: Swatinem/rust-cache@v2
+      - name: Build and measure
+        run: |
+          set -euo pipefail
+
+          cargo build --release
+
+          find target/release -maxdepth 1 -type f -executable \
+            -exec stat --format='%n %s' {} \; \
+            | sort \
+            | jq -R 'split(" ") | {(.[0] | split("/")[-1]): (.[1] | tonumber)}' \
+            | jq -s add > sizes.json
+
+          jq -n --argjson binaries "$(cat sizes.json)" '{binaries: $binaries}' > baseline.json
+      - uses: actions/cache/save@v5
+        with:
+          path: baseline.json
+          key: binary-baseline-${{ github.run_id }}

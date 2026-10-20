@@ -1,0 +1,19 @@
+# Rust / Cargo
+target/
+**/*.rs.bk
+
+# Cargo mutants
+**/mutants.out*/
+
+# Nix and direnv
+.direnv/
+/result
+/result-*/
+
+# Editors and operating systems
+.zed/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
